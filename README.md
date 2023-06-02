@@ -6,7 +6,7 @@
 
 This plugin allows content editors to quickly view, approve and reject all the documents in **_draft_** mode.
 
-![Screenshot](/assets/screenshot.png 'Screenshot')
+![Screenshot](/assets/screenshot.png)
 
 ## Installation
 

@@ -1,26 +1,17 @@
 /* eslint-disable react/jsx-no-bind */
-import {SanityUser} from '@sanity/client'
-import {Avatar, Button, Card, Flex, Grid, Text, ThemeProvider, studioTheme} from '@sanity/ui'
+import {Button, Card, Flex, Grid, Text, ThemeProvider, studioTheme} from '@sanity/ui'
 import {useCallback, useEffect, useState} from 'react'
 import {debounceTime} from 'rxjs/operators'
 import {EvaluationParams, MutationEvent, useClient, useDocumentOperation} from 'sanity'
 import {useRouter} from 'sanity/router'
 import Diff from './Diff'
+import {UserHead} from './UserHead'
+import {Draft} from './types'
 
 const QUERY = `*[_id in path("drafts.**")]{
   ...,
   "__published": *[_id ==  string::split(^._id,'drafts.')[1]][0] 
 }`
-
-type Draft = {
-  _id: string
-  _type: string
-  _updatedAt: string
-  _createdAt: string
-  _rev: string
-  __published?: Omit<Draft, '__published'>
-  [key: string]: any
-}
 
 const clean = (obj: any) => {
   const {_id, _rev, _updatedAt, __published, _createdAt, _type, ...rest} = obj
@@ -105,7 +96,7 @@ function InnerDiffTool() {
         )
       })
     },
-    [users, drafts]
+    [users]
   )
 
   if (drafts.length == 0) {
@@ -129,52 +120,21 @@ function Buttons({draft}: {draft: Draft}) {
   const onPublish = useCallback(() => {
     publish.execute()
   }, [publish])
+
   const onDiscard = useCallback(() => {
     discardChanges.execute()
-  }, [publish])
+  }, [discardChanges])
   const router = useRouter()
-  const onClick = () => {
+
+  const onClick = useCallback(() => {
     router.navigateIntent('edit', {id: draft._id, documentType: draft._type})
-  }
+  }, [router, draft])
+
   return (
     <>
       <Button onClick={onPublish} text="Publish" tone="positive" />
       <Button tone="critical" onClick={onDiscard} text="Discard" />
       <Button onClick={onClick} text="Edit" />
     </>
-  )
-}
-
-function UserHead({id}: {id: string}) {
-  const client = useClient({apiVersion: 'v2021-10-21'})
-
-  const [data, setData] = useState<SanityUser | undefined>(undefined)
-
-  useEffect(() => {
-    client.users.getById(id).then((v) => setData(v))
-  }, [id, setData])
-
-  if (!data) {
-    return <></>
-  }
-  return (
-    <div
-      style={{
-        position: 'relative',
-        display: 'inline-flex',
-        margin: '8px',
-        flex: 1,
-        alignItems: 'center',
-      }}
-    >
-      <Avatar
-        size={1}
-        title={data.displayName}
-        src={
-          data.imageUrl ||
-          'https://raw.githubusercontent.com/sanity-io/sanity-plugin-graph-view/main/assets/head-silhouette.jpg'
-        }
-      />
-    </div>
   )
 }

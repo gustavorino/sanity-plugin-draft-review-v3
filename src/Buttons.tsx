@@ -15,7 +15,7 @@ export function Buttons({draft}: {draft: Draft}) {
   }, [publish])
   const onDiscard = useCallback(() => {
     discardChanges.execute()
-  }, [publish])
+  }, [discardChanges])
   const router = useRouter()
   const onClick = () => {
     router.navigateIntent('edit', {id: draft._id, documentType: draft._type})

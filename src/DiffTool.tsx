@@ -1,8 +1,16 @@
 /* eslint-disable react/jsx-no-bind */
+import {PublishIcon, TrashIcon} from '@sanity/icons'
 import {Button, Card, Flex, Grid, Text, ThemeProvider, studioTheme} from '@sanity/ui'
 import {useCallback, useEffect, useState} from 'react'
+import {firstValueFrom} from 'rxjs'
 import {debounceTime} from 'rxjs/operators'
-import {EvaluationParams, MutationEvent, useClient, useDocumentOperation} from 'sanity'
+import {
+  EvaluationParams,
+  MutationEvent,
+  useClient,
+  useDocumentOperation,
+  useDocumentStore,
+} from 'sanity'
 import {useRouter} from 'sanity/router'
 import Diff from './Diff'
 import {UserHead} from './UserHead'
@@ -36,14 +44,17 @@ function InnerDiffTool() {
     client.fetch(QUERY).then((data) => {
       setDrafts(data)
     })
-  }, [])
+  }, [client])
 
-  const onUpdate = useCallback((update: MutationEvent & EvaluationParams & {result: any}) => {
-    const newUser = {[update.documentId]: update.identity!}
+  const onUpdate = useCallback(
+    (update: MutationEvent & EvaluationParams & {result: any}) => {
+      const newUser = {[update.documentId]: update.identity!}
 
-    setUsers((data) => ({...data, ...newUser}))
-    fetchDrafts()
-  }, [])
+      setUsers((data) => ({...data, ...newUser}))
+      fetchDrafts()
+    },
+    [fetchDrafts]
+  )
 
   useEffect(() => {
     const sub = client
@@ -66,7 +77,7 @@ function InnerDiffTool() {
         const isNew = doc === newDoc
 
         return (
-          <div key={i}>
+          <div key={draft._id}>
             <Flex marginY={4} align={'center'}>
               {isNew && (
                 <Text size={4} weight="bold">
@@ -109,21 +120,53 @@ function InnerDiffTool() {
     )
   }
 
-  return <Card margin={3}>{renderDiffs(drafts)}</Card>
+  return (
+    <Card margin={4}>
+      {renderDiffs(drafts)}
+      <AllButtons drafts={drafts} />
+    </Card>
+  )
+}
+function AllButtons({drafts}: {drafts: Draft[]}) {
+  const documentStore = useDocumentStore()
+
+  const onPublishAll = useCallback(() => {
+    drafts.map((draft) =>
+      firstValueFrom(documentStore.pair.editOperations(getPublishedId(draft), draft._type)).then(
+        ({publish}) => publish.execute()
+      )
+    )
+  }, [documentStore, drafts])
+
+  const onDiscardAll = useCallback(() => {
+    drafts.map((draft) =>
+      firstValueFrom(documentStore.pair.editOperations(getPublishedId(draft), draft._type)).then(
+        ({discardChanges}) => discardChanges.execute()
+      )
+    )
+  }, [documentStore, drafts])
+
+  return (
+    <Grid style={{maxWidth: '400px'}} gap={2} columns={2}>
+      <Button onClick={onPublishAll} icon={PublishIcon} text="Publish ALL" tone="positive" />
+      <Button onClick={onDiscardAll} icon={TrashIcon} text="Discard ALL" tone="critical" />
+    </Grid>
+  )
 }
 
 function Buttons({draft}: {draft: Draft}) {
-  const {publish, discardChanges} = useDocumentOperation(
-    draft._id.replace('drafts.', ''),
-    draft._type
-  )
+  const [action, setAction] = useState<undefined | 'published' | 'discarded'>(undefined)
+
+  const {publish, discardChanges} = useDocumentOperation(getPublishedId(draft), draft._type)
   const onPublish = useCallback(() => {
+    setAction('published')
     publish.execute()
-  }, [publish])
+  }, [publish, setAction])
 
   const onDiscard = useCallback(() => {
     discardChanges.execute()
-  }, [discardChanges])
+    setAction('discarded')
+  }, [discardChanges, setAction])
   const router = useRouter()
 
   const onClick = useCallback(() => {
@@ -132,9 +175,13 @@ function Buttons({draft}: {draft: Draft}) {
 
   return (
     <>
-      <Button onClick={onPublish} text="Publish" tone="positive" />
-      <Button tone="critical" onClick={onDiscard} text="Discard" />
+      <Button disabled={!!action} onClick={onPublish} text="Publish" tone="positive" />
+      <Button disabled={!!action} tone="critical" onClick={onDiscard} text="Discard" />
       <Button onClick={onClick} text="Edit" />
     </>
   )
+}
+
+function getPublishedId(draft: Draft) {
+  return draft._id.replace('drafts.', '')
 }

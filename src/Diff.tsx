@@ -9,6 +9,7 @@ export default function Diff({inputA, inputB}: any) {
       return null
     }
     const spanStyle = {
+      color: 'black',
       backgroundColor: part.added ? 'lightgreen' : part.removed ? 'salmon' : 'lightgrey',
     }
 
@@ -21,5 +22,5 @@ export default function Diff({inputA, inputB}: any) {
       </span>
     )
   })
-  return <pre>{result}</pre>
+  return <pre style={{whiteSpace: 'pre-wrap'}}>{result}</pre>
 }

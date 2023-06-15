@@ -10,18 +10,15 @@ interface DraftReviewPluginConfig {
  * Usage in `sanity.config.ts` (or .js)
  *
  * ```ts
- * import {defineConfig} from 'sanity'
- * import {myPlugin} from 'sanity-plugin-draft-review-v3'
+ * import {draftReviewPluginV3} from 'sanity-plugin-draft-review-v3'
  *
  * export default defineConfig({
  *   // ...
- *   plugins: [myPlugin()],
+ *   plugins: [draftReviewPluginV3()],
  * })
  * ```
  */
 export const draftReviewPluginV3 = definePlugin<DraftReviewPluginConfig | void>((config = {}) => {
-  // eslint-disable-next-line no-console
-  console.log('hello from sanity-plugin-draft-review-v3')
   return {
     name: 'sanity-plugin-draft-review-v3',
     tools: [

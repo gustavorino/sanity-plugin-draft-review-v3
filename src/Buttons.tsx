@@ -1,29 +1,34 @@
 /* eslint-disable react/jsx-no-bind */
 import {Button} from '@sanity/ui'
-import {useCallback} from 'react'
+import {useCallback, useState} from 'react'
 import {useDocumentOperation} from 'sanity'
 import {useRouter} from 'sanity/router'
 import {Draft} from './types'
+import {getPublishedId} from './utils'
 
 export function Buttons({draft}: {draft: Draft}) {
-  const {publish, discardChanges} = useDocumentOperation(
-    draft._id.replace('drafts.', ''),
-    draft._type
-  )
+  const [action, setAction] = useState<undefined | 'published' | 'discarded'>(undefined)
+
+  const {publish, discardChanges} = useDocumentOperation(getPublishedId(draft), draft._type)
   const onPublish = useCallback(() => {
+    setAction('published')
     publish.execute()
-  }, [publish])
+  }, [publish, setAction])
+
   const onDiscard = useCallback(() => {
     discardChanges.execute()
-  }, [discardChanges])
+    setAction('discarded')
+  }, [discardChanges, setAction])
   const router = useRouter()
-  const onClick = () => {
+
+  const onClick = useCallback(() => {
     router.navigateIntent('edit', {id: draft._id, documentType: draft._type})
-  }
+  }, [router, draft])
+
   return (
     <>
-      <Button onClick={onPublish} text="Publish" tone="positive" />
-      <Button tone="critical" onClick={onDiscard} text="Discard" />
+      <Button disabled={!!action} onClick={onPublish} text="Publish" tone="positive" />
+      <Button disabled={!!action} tone="critical" onClick={onDiscard} text="Discard" />
       <Button onClick={onClick} text="Edit" />
     </>
   )

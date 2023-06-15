@@ -1,6 +1,6 @@
 {
   "name": "sanity-plugin-draft-review-v3",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "This plugin allows content editors to quickly view, approve and reject all the documents in draft mode (not published).",
   "keywords": [
     "sanity",
@@ -50,7 +50,7 @@
     "diff": "^5.1.0"
   },
   "devDependencies": {
-    "@sanity/pkg-utils": "^2.2.16",
+    "@sanity/pkg-utils": "^2.3.3",
     "@sanity/plugin-kit": "^3.1.7",
     "@types/diff": "^5.0.3",
     "@types/react": "^18.2.7",

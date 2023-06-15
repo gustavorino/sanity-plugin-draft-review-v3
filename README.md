@@ -6,7 +6,15 @@
 
 This plugin allows content editors to quickly view, approve and reject all the documents in **_draft_** mode.
 
-![Screenshot](/assets/screenshot.png)
+### Whats New!
+
+- Sanity Preview Support
+- New Grid Layout
+- Dark Mode Support
+- User Presence Support
+- Live updates
+
+![Screenshot](/assets/screenshot2.png)
 
 ## Installation
 
